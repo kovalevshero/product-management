@@ -2,12 +2,12 @@ import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
 import { and, desc, eq, ilike, sql } from 'drizzle-orm';
-import { DatabaseService } from '../../database/database.service';
-import { products } from '../../database/schema/products';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
-import { QueryProductDto } from './dto/query-product.dto';
-import { AuthenticatedUser } from '../../common/decorators/current-user.decorator';
+import { DatabaseService } from '../../database/database.service.js';
+import { products } from '../../database/schema/products.js';
+import { CreateProductDto } from './dto/create-product.dto.js';
+import { UpdateProductDto } from './dto/update-product.dto.js';
+import { QueryProductDto } from './dto/query-product.dto.js';
+import { AuthenticatedUser } from '../../common/decorators/current-user.decorator.js';
 
 @Injectable()
 export class ProductsService {

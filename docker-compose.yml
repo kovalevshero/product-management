@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:18
+    container_name: product_management_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: product_management
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d product_management"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: product_management_api
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:postgrespassword@db:5432/product_management
+      JWT_SECRET: super-secret-jwt-key-for-product-api-2026
+      JWT_EXPIRES_IN: 1h
+      JWT_REFRESH_SECRET: super-secret-jwt-refresh-key-for-product-api-2026
+      JWT_REFRESH_EXPIRES_IN: 7d
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

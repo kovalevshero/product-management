@@ -1,8 +1,8 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { DatabaseService } from '../../../database/database.service';
-import { users } from '../../../database/schema/users';
+import { DatabaseService } from '../../../database/database.service.js';
+import { users } from '../../../database/schema/users.js';
 import { eq } from 'drizzle-orm';
 
 @Injectable()

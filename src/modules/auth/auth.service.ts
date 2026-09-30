@@ -2,11 +2,11 @@ import { Injectable, BadRequestException, UnauthorizedException, ConflictExcepti
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { eq } from 'drizzle-orm';
-import { DatabaseService } from '../../database/database.service';
-import { users } from '../../database/schema/users';
-import { RegisterDto } from './dto/register.dto';
-import { LoginDto } from './dto/login.dto';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { DatabaseService } from '../../database/database.service.js';
+import { users } from '../../database/schema/users.js';
+import { RegisterDto } from './dto/register.dto.js';
+import { LoginDto } from './dto/login.dto.js';
+import { RefreshTokenDto } from './dto/refresh-token.dto.js';
 
 @Injectable()
 export class AuthService {

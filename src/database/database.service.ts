@@ -2,7 +2,7 @@ import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/commo
 import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
-import * as schema from './schema';
+import * as schema from './schema/index.js';
 import * as path from 'path';
 
 export const DRIZZLE_TOKEN = 'DRIZZLE_DATABASE';

@@ -1,5 +1,5 @@
 import { Global, Module } from '@nestjs/common';
-import { DatabaseService, DRIZZLE_TOKEN } from './database.service';
+import { DatabaseService, DRIZZLE_TOKEN } from './database.service.js';
 
 @Global()
 @Module({
