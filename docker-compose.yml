@@ -2,7 +2,7 @@ services:
   db:
     image: postgres:18
     container_name: product_management_db
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgrespassword
@@ -22,7 +22,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: product_management_api
-    restart: always
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
