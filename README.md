@@ -1,142 +1,69 @@
-# Product Management & Authentication REST API
+# Product catalog and inventory API
 
-Production-ready Backend REST API built with NestJS 12.1.1, Fastify, PostgreSQL 18, Drizzle ORM, Argon2, and Docker Desktop.
+Backend portfolio project developed from a product-management technical test. The implementation runs on Node.js 24, NestJS 12.1.1, Fastify, PostgreSQL 18, and Drizzle ORM.
 
-## Tech Stack
-- **Framework**: NestJS 12.1.1
-- **HTTP Engine**: Fastify (`@nestjs/platform-fastify`)
-- **Runtime**: Node.js 24 (`node:24-alpine`)
-- **Database**: PostgreSQL 18 (`postgres:18`)
-- **ORM & Migrations**: Drizzle ORM (`drizzle-orm`, `drizzle-kit`, `postgres`)
-- **Password & Token Security**: Argon2 (`argon2`), JWT (`@nestjs/jwt`, `passport-jwt`)
-- **Rate Limiting**: `@nestjs/throttler` (Auth: max 3/60s, Products create/update/delete: max 1/5s)
-- **Caching**: `@nestjs/cache-manager` (in-memory with eviction on mutations)
-- **Documentation**: Swagger OpenAPI at `/api/docs`
-- **Containerization**: Docker & Docker Compose (Docker Desktop compatible)
+## Development
 
----
+Copy `.env.example` to `.env` and replace both JWT secrets with independent random values of at least 32 characters. Generate each value with `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"`.
 
-## Quick Start with Docker Desktop
-
-Run the complete backend stack with a single command:
-
-```bash
-docker compose up --build
+```sh
+docker compose up --build -d
 ```
 
-The services will start:
-- **API URL**: `http://localhost:3000`
-- **Interactive Swagger Documentation**: `http://localhost:3000/api/docs`
-- **PostgreSQL 18**: `localhost:5432`
+Compose starts PostgreSQL, runs migrations once, then starts the API. Migration errors stop the deployment. The API checks that database migration hashes match its bundled schema before accepting traffic.
 
----
+API: `http://localhost:3000`; Swagger: `http://localhost:3000/api/docs`.
 
-## API Endpoints Summary
+Without Docker, provide `DATABASE_URL`, install dependencies, build, and migrate before starting:
 
-### 1. Authentication Endpoints (`/api/auth`)
-| Method | Endpoint | Description | Rate Limit |
-|---|---|---|---|
-| `POST` | `/api/auth/register` | Register new user | Max 3 requests / 60s |
-| `POST` | `/api/auth/login` | Login user, returns `authentication_token` & `refresh_token` | Max 3 requests / 60s |
-| `POST` | `/api/auth/refresh` | Exchange refresh token for new access & refresh tokens | - |
-
-#### Register Request Example:
-```bash
-curl -X POST http://localhost:3000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "jhon_doe",
-    "password": "supersecret",
-    "password_confirmation": "supersecret",
-    "full_name": "Jhon Doe"
-  }'
+```sh
+npm ci
+npm run build
+npm run db:migrate
+npm run start:prod
 ```
 
-#### Login Request Example:
-```bash
-curl -X POST http://localhost:3000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "jhon_doe",
-    "password": "supersecret"
-  }'
-```
-Response:
-```json
-{
-  "authentication_token": "eyJhbGciOi...",
-  "refresh_token": "eyJhbGciOi..."
-}
-```
+Use `npm run start:dev` after the initial migration. Schema changes require `npm run db:generate`, review of generated SQL, a build, and `npm run db:migrate`.
 
----
+## Configuration and API contracts
 
-### 2. Product Management Endpoints (`/api/products`)
-| Method | Endpoint | Description | Auth Required | Rate Limit |
-|---|---|---|---|---|
-| `GET` | `/api/products` | List all products with pagination and filters | No (Public, Cached) | - |
-| `GET` | `/api/products/:id` | Get detail of a product | No (Public, Cached) | - |
-| `POST` | `/api/products` | Create a new product | Yes (Bearer Token) | Max 1 request / 5s |
-| `PUT` | `/api/products/:id` | Update an existing product | Yes (Bearer Token) | Max 1 request / 5s |
-| `DELETE` | `/api/products/:id` | Delete a product by ID | Yes (Bearer Token) | Max 1 request / 5s |
+`DATABASE_URL`, `JWT_SECRET`, and `JWT_REFRESH_SECRET` are required. Secrets must differ and contain at least 32 characters. Access tokens expire after 15 minutes; refresh tokens expire after 7 days. Each user has one active refresh session. Login replaces it, refresh rotates it atomically, and logout revokes it. Issued access tokens remain valid until expiry; logout does not immediately revoke them.
 
-#### List Products with Filtering & Pagination:
-```bash
-curl "http://localhost:3000/api/products?search=shirt&category=Clothes&page=1&limit=10"
-```
+`CORS_ORIGINS` is a comma-separated list of origins. Production requires an explicit allowlist. Wildcard origins are supported for development/test with credentials disabled; authentication uses Bearer tokens rather than cookies. `STORE_CURRENCY` is IDR. Timestamps use UTC in `YYYY-MM-DD HH:mm:ss` format. Pagination defaults to page 1 and limit 10; maximum limit is 100.
 
-#### Create Product (Authorized):
-```bash
-curl -X POST http://localhost:3000/api/products \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <authentication_token>" \
-  -d '{
-    "title": "Awesome T-Shirt",
-    "price": 99.99,
-    "description": "High-quality cotton t-shirt",
-    "category": "Clothes",
-    "images": ["https://placeimg.com/640/480/any"]
-  }'
+| Method | Path | Access |
+|---|---|---|
+| POST | `/api/auth/register` | Public, 3 requests/minute |
+| POST | `/api/auth/login` | Public, 3 requests/minute |
+| POST | `/api/auth/refresh` | Refresh token |
+| POST | `/api/auth/logout` | Bearer token, returns 204 |
+| GET | `/api/products`, `/api/products/:id` | Public catalog |
+| POST/PUT/DELETE | `/api/products`, `/api/products/:id` | Bearer token, 1 mutation/5 seconds |
+| GET | `/api/health/live` | Public liveness |
+| GET | `/api/health/ready` | Public database readiness |
+
+Product search accepts `search`, `category`, `page`, and `limit`. Product fields retain the technical test response shape. Swagger describes request validation and response statuses. Unexpected failures return a generic 500 response without SQL or credentials.
+
+Catalog caching uses in-memory generations with a 60-second TTL. An in-flight old read cannot repopulate the current generation after a successful mutation. This implementation targets one API instance; shared caches and multi-instance deployment require additional work.
+
+## Verification
+
+The Docker test project has its own volume, PostgreSQL port 5433, and API port 3001. It does not restart or reset the development project.
+
+```sh
+docker compose -p inventory_test -f docker-compose.test.yml up -d --build --wait
+npm test -- --runInBand
+npm run test:integration -- --runInBand
 ```
 
-Sample Product Response (formatted strictly according to PDF spec):
-```json
-{
-  "id": 1,
-  "title": "Awesome T-Shirt",
-  "price": 99.99,
-  "description": "High-quality cotton t-shirt",
-  "category": "Clothes",
-  "images": [
-    "https://placeimg.com/640/480/any"
-  ],
-  "created_at": "2025-01-01 15:01:04",
-  "created_by": "Jhon Doe",
-  "created_by_id": "1",
-  "updated_at": "2025-01-01 15:01:04",
-  "updated_by": "Jhon Doe",
-  "updated_by_id": "1"
-}
-```
+Unit tests run in Jest. HTTP tests start the compiled application in an isolated Node.js 24 process because Jest 29 cannot load the CommonJS throttler's NestJS 12 ESM dependencies. Requests go through a real HTTP listener and PostgreSQL; concurrency tests use simultaneous requests. Throttling is stubbed only for suites that isolate other behavior; rate-limit tests use the real limiter.
 
----
+By default HTTP tests use `postgresql://postgres:test@localhost:5433/product_management_test`. Set `TEST_DATABASE_URL` to use another test database, including the PostgreSQL service in CI. Test helpers refuse names without the `_test` suffix before reset; migrations also run only on that selected test database. Do not point tests at development data.
 
-## Local Development (Without Docker)
+The GitHub Actions workflow installs dependencies, builds, migrates PostgreSQL 18, and runs unit/HTTP tests. A workflow file is not evidence of a successful remote run; inspect actual Actions results after an authorized push.
 
-1. Make sure PostgreSQL 18 is running locally.
-2. Setup environment:
-   ```bash
-   cp .env.example .env
-   ```
-3. Run migrations:
-   ```bash
-   npm run db:generate
-   ```
-4. Start dev server:
-   ```bash
-   npm run start:dev
-   ```
-5. Run tests:
-   ```bash
-   npm test
-   ```
+## Development roadmap
+
+Planning lives in `docs/superpowers/plans/2026-10-05-inventory-portfolio-roadmap.md`; the design contract lives in `docs/superpowers/specs/2026-10-05-inventory-portfolio-design.md`. The milestones are backend foundations, inventory MVP, and stock reservations. Frontend, public hosting, background CSV import, and multi-store support are separate follow-up milestones.
+
+Work is on branch `experiment`. No automated push or merge to `main` is part of this workflow.

@@ -1,6 +1,5 @@
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import type { Cache } from 'cache-manager';
+import { ProductCacheService } from './product-cache.service.js';
 import { and, desc, eq, ilike, sql } from 'drizzle-orm';
 import { DatabaseService } from '../../database/database.service.js';
 import { products } from '../../database/schema/products.js';
@@ -13,27 +12,15 @@ import { AuthenticatedUser } from '../../common/decorators/current-user.decorato
 export class ProductsService {
   constructor(
     private readonly databaseService: DatabaseService,
-    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+    private readonly cache: ProductCacheService,
   ) {}
 
   private getCacheKey(query: QueryProductDto): string {
-    return `products_list:${query.search || ''}:${query.category || ''}:${query.page || 1}:${query.limit || 10}`;
+    return JSON.stringify([query.search || '', query.category || '', query.page || 1, query.limit || 10]);
   }
 
   private async invalidateCache(productId?: number) {
-    if (productId) {
-      await this.cacheManager.del(`product_detail:${productId}`);
-    }
-    // Clear list cache
-    try {
-      if (typeof (this.cacheManager as any).clear === 'function') {
-        await (this.cacheManager as any).clear();
-      } else if (typeof (this.cacheManager as any).reset === 'function') {
-        await (this.cacheManager as any).reset();
-      }
-    } catch {
-      // Continue safely if reset/clear is not supported
-    }
+    this.cache.invalidate();
   }
 
   private formatProductOutput(p: any) {
@@ -54,12 +41,7 @@ export class ProductsService {
   }
 
   async findAll(query: QueryProductDto) {
-    const cacheKey = this.getCacheKey(query);
-    const cached = await this.cacheManager.get(cacheKey);
-    if (cached) {
-      return cached;
-    }
-
+    return this.cache.getOrLoad(this.getCacheKey(query), async () => {
     const page = query.page && query.page > 0 ? query.page : 1;
     const limit = query.limit && query.limit > 0 ? query.limit : 10;
     const offset = (page - 1) * limit;
@@ -99,17 +81,12 @@ export class ProductsService {
       },
     };
 
-    await this.cacheManager.set(cacheKey, result, 60000);
     return result;
+    });
   }
 
   async findOne(id: number) {
-    const cacheKey = `product_detail:${id}`;
-    const cached = await this.cacheManager.get(cacheKey);
-    if (cached) {
-      return cached;
-    }
-
+    return this.cache.getOrLoad(`product_detail:${id}`, async () => {
     const [product] = await this.databaseService.db
       .select()
       .from(products)
@@ -121,8 +98,8 @@ export class ProductsService {
     }
 
     const formatted = this.formatProductOutput(product);
-    await this.cacheManager.set(cacheKey, formatted, 60000);
     return formatted;
+    });
   }
 
   async create(dto: CreateProductDto, user: AuthenticatedUser) {

@@ -3,6 +3,13 @@ import { validate } from 'class-validator';
 import { CreateProductDto } from '../src/modules/products/dto/create-product.dto';
 
 describe('CreateProductDto', () => {
+  it('rejects precision loss and non-HTTP images', async () => {
+    const dto = Object.assign(new CreateProductDto(), {
+      title: 'Demo product', price: 1.001, category: 'Clothes', images: ['javascript:alert(1)'],
+    });
+    const errors = await validate(dto);
+    expect(errors.map(e => e.property)).toEqual(expect.arrayContaining(['price', 'images']));
+  });
   it('should fail when images array is empty', async () => {
     const dto = new CreateProductDto();
     dto.title = 'T-Shirt';

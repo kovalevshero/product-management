@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { ProductCacheService } from '../src/modules/products/product-cache.service.js';
 import { ProductsService } from '../src/modules/products/products.service';
 import { DatabaseService } from '../src/database/database.service';
 
@@ -16,7 +16,7 @@ describe('ProductsService', () => {
           useValue: { db: {} },
         },
         {
-          provide: CACHE_MANAGER,
+          provide: ProductCacheService,
           useValue: {
             get: jest.fn<any>(),
             set: jest.fn<any>(),

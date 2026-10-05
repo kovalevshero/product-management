@@ -8,6 +8,7 @@ import { ProductsModule } from './modules/products/products.module.js';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard.js';
 import { DateFormatInterceptor } from './common/interceptors/date-format.interceptor.js';
 import { FastifyHttpExceptionFilter } from './common/filters/fastify-http-exception.filter.js';
+import { HealthModule } from './health/health.module.js';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { FastifyHttpExceptionFilter } from './common/filters/fastify-http-except
     DatabaseModule,
     AuthModule,
     ProductsModule,
+    HealthModule,
   ],
   providers: [
     {

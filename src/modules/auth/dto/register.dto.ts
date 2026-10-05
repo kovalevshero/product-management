@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, MinLength, Matches, Validate } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, MinLength, MaxLength, Matches, Validate } from 'class-validator';
 import { ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments } from 'class-validator';
 
 @ValidatorConstraint({ name: 'MatchPassword', async: false })
@@ -17,6 +17,7 @@ export class RegisterDto {
   @IsString()
   @IsNotEmpty({ message: 'username is required' })
   @MinLength(3, { message: 'username must be at least 3 characters' })
+  @MaxLength(50)
   @Matches(/^[a-zA-Z0-9_]+$/, { message: 'username can only contain alphanumeric characters and underscores' })
   username: string;
 
@@ -24,6 +25,7 @@ export class RegisterDto {
   @IsString()
   @IsNotEmpty({ message: 'password is required' })
   @MinLength(6, { message: 'password must be at least 6 characters' })
+  @MaxLength(128)
   password: string;
 
   @ApiProperty({ example: 'supersecret', description: 'Confirmation matching password' })
@@ -35,5 +37,6 @@ export class RegisterDto {
   @ApiPropertyOptional({ example: 'Jhon Doe', description: 'Optional user full name' })
   @IsOptional()
   @IsString()
+  @MaxLength(100)
   full_name?: string;
 }

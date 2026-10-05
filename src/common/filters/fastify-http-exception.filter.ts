@@ -24,12 +24,9 @@ export class FastifyHttpExceptionFilter implements ExceptionFilter {
         message = res;
         errorName = exception.name;
       }
-    } else if (exception instanceof Error) {
-      message = exception.message;
-      errorName = exception.name;
     }
 
-    this.logger.error(`[${request.method}] ${request.url} - ${status} - ${JSON.stringify(message)}`);
+    this.logger.error(`${request.method} ${status} ${errorName}`);
 
     response.status(status).send({
       statusCode: status,

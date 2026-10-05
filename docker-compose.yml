@@ -17,6 +17,15 @@ services:
       timeout: 3s
       retries: 5
 
+  migrate:
+    build: .
+    restart: "no"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgrespassword@db:5432/product_management
+    command: ["node", "dist/database/migrate.js"]
+    depends_on:
+      db:
+        condition: service_healthy
   api:
     build:
       context: .
@@ -29,13 +38,12 @@ services:
       NODE_ENV: production
       PORT: 3000
       DATABASE_URL: postgresql://postgres:postgrespassword@db:5432/product_management
-      JWT_SECRET: super-secret-jwt-key-for-product-api-2026
-      JWT_EXPIRES_IN: 1h
-      JWT_REFRESH_SECRET: super-secret-jwt-refresh-key-for-product-api-2026
-      JWT_REFRESH_EXPIRES_IN: 7d
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?Set JWT_REFRESH_SECRET}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
     depends_on:
-      db:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
 volumes:
   postgres_data:

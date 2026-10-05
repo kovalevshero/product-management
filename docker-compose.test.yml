@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: product_management_test
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - test_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d product_management_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  migrate:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://postgres:test@db:5432/product_management_test
+    command: ["node", "dist/database/migrate.js"]
+    depends_on:
+      db:
+        condition: service_healthy
+  api:
+    build: .
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:test@db:5432/product_management_test
+      JWT_SECRET: test-access-secret-at-least-32-characters-long
+      JWT_REFRESH_SECRET: test-refresh-secret-at-least-32-characters-long
+      CORS_ORIGINS: '*'
+    ports:
+      - "127.0.0.1:3001:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/api/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+volumes:
+  test_data:

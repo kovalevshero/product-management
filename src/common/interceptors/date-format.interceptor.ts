@@ -11,12 +11,12 @@ export function formatDateTime(date: Date | string | null | undefined): string |
   const d = date instanceof Date ? date : new Date(date);
   if (isNaN(d.getTime())) return typeof date === 'string' ? date : null;
 
-  const year = d.getFullYear();
-  const month = padZero(d.getMonth() + 1);
-  const day = padZero(d.getDate());
-  const hours = padZero(d.getHours());
-  const minutes = padZero(d.getMinutes());
-  const seconds = padZero(d.getSeconds());
+  const year = d.getUTCFullYear();
+  const month = padZero(d.getUTCMonth() + 1);
+  const day = padZero(d.getUTCDate());
+  const hours = padZero(d.getUTCHours());
+  const minutes = padZero(d.getUTCMinutes());
+  const seconds = padZero(d.getUTCSeconds());
 
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
