@@ -1,8 +1,12 @@
-import { pgTable, serial, varchar, text, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, pgEnum, serial, varchar, text, timestamp } from 'drizzle-orm/pg-core';
+
+export const userRole = pgEnum('user_role', ['admin', 'staff', 'viewer']);
+export type UserRole = typeof userRole.enumValues[number];
 
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   username: varchar('username', { length: 50 }).notNull().unique(),
+  role: userRole('role').notNull().default('viewer'),
   password: varchar('password', { length: 255 }).notNull(),
   fullName: varchar('full_name', { length: 100 }),
   refreshTokenHash: text('refresh_token_hash'),

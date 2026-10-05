@@ -38,7 +38,14 @@ Use `npm run start:dev` after the initial migration. Schema changes require `npm
 | POST | `/api/auth/refresh` | Refresh token |
 | POST | `/api/auth/logout` | Bearer token, returns 204 |
 | GET | `/api/products`, `/api/products/:id` | Public catalog |
-| POST/PUT/DELETE | `/api/products`, `/api/products/:id` | Bearer token, 1 mutation/5 seconds |
+| POST/PUT | `/api/products`, `/api/products/:id` | Staff/admin, 1 mutation/5 seconds |
+| DELETE | `/api/products/:id` | Admin archive, requires zero stock |
+| GET/POST | `/api/products/:id/variants` | Authenticated read; staff/admin create |
+| PATCH | `/api/variants/:id` | Staff/admin, label and decimal-string price |
+| GET | `/api/inventory`, `/api/inventory/variants/:id/movements` | Authenticated |
+| POST | `/api/inventory/movements` | Staff/admin |
+| PATCH | `/api/users/:id/role` | Admin, final admin protected |
+| GET | `/api/audit-logs` | Admin |
 | GET | `/api/health/live` | Public liveness |
 | GET | `/api/health/ready` | Public database readiness |
 
@@ -47,6 +54,14 @@ Product search accepts `search`, `category`, `page`, and `limit`. Product fields
 Catalog caching uses in-memory generations with a 60-second TTL. An in-flight old read cannot repopulate the current generation after a successful mutation. This implementation targets one API instance; shared caches and multi-instance deployment require additional work.
 
 ## Verification
+
+Public signup creates a viewer and rejects role injection. To create the first admin, build and migrate, then set `BOOTSTRAP_ADMIN_USERNAME` and `BOOTSTRAP_ADMIN_PASSWORD` as environment variables and run `npm run db:bootstrap-admin`. The command refuses to run when an admin already exists and never promotes an existing account automatically. With Docker, pass those variables to a one-off API service command; do not commit their values.
+
+For a separate demo database, set `DATABASE_URL` to `product_management_demo`, migrate, then run `npm run db:seed-demo` in development mode. Synthetic accounts `demo_admin`, `demo_staff` and `demo_viewer` use `demo-secret123`; the database contains one product, two SKU variants and ten opening units each. Seed refuses production mode and other database names. Replaying seed keeps existing credentials and opening movements.
+
+Variant price is a positive decimal string, such as `"99.99"`; SKU is immutable. Inventory movements accept nonzero integer delta up to 1,000,000 absolute, a kind and a reason. `IN` is positive, `OUT` negative, `ADJUSTMENT` signed. `available = on_hand - reserved`; insufficient stock returns 409. Catalog DTOs cannot update stock. All successful domain mutations and their audit records share one transaction.
+
+The [case study](docs/portfolio/inventory-case-study.md) explains the schema and concurrency decisions; the [HTTP collection](docs/portfolio/inventory-api.http) provides demo requests.
 
 The Docker test project has its own volume, PostgreSQL port 5433, and API port 3001. It does not restart or reset the development project.
 

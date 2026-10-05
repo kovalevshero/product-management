@@ -9,6 +9,10 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard.js';
 import { DateFormatInterceptor } from './common/interceptors/date-format.interceptor.js';
 import { FastifyHttpExceptionFilter } from './common/filters/fastify-http-exception.filter.js';
 import { HealthModule } from './health/health.module.js';
+import { RolesGuard } from './common/guards/roles.guard.js';
+import { UsersModule } from './modules/users/users.module.js';
+import { AuditModule } from './modules/audit/audit.module.js';
+import { InventoryModule } from './modules/inventory/inventory.module.js';
 
 @Module({
   imports: [
@@ -26,6 +30,9 @@ import { HealthModule } from './health/health.module.js';
     AuthModule,
     ProductsModule,
     HealthModule,
+    UsersModule,
+    AuditModule,
+    InventoryModule,
   ],
   providers: [
     {
@@ -36,6 +43,7 @@ import { HealthModule } from './health/health.module.js';
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
+    { provide: APP_GUARD, useClass: RolesGuard },
     {
       provide: APP_INTERCEPTOR,
       useClass: DateFormatInterceptor,

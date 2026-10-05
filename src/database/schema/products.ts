@@ -13,6 +13,7 @@ export const products = pgTable('products', {
   updatedBy: varchar('updated_by', { length: 100 }).notNull(),
   updatedById: varchar('updated_by_id', { length: 50 }).notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  archivedAt: timestamp('archived_at', { withTimezone: true }),
 });
 
 export type Product = typeof products.$inferSelect;

@@ -1,0 +1,52 @@
+@baseUrl = http://localhost:3000
+@adminToken = replace-with-demo-admin-access-token
+@staffToken = replace-with-demo-staff-access-token
+@viewerToken = replace-with-demo-viewer-access-token
+@productId = 1
+@variantId = 1
+
+### Login: synthetic account, demo database only
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{"username":"demo_admin","password":"demo-secret123"}
+
+### Public catalog
+GET {{baseUrl}}/api/products
+
+### Create a catalog product
+POST {{baseUrl}}/api/products
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"title":"Synthetic Demo Shirt","price":99.99,"category":"Demo","images":["https://example.com/demo.jpg"]}
+
+### Create a zero-stock variant
+POST {{baseUrl}}/api/products/{{productId}}/variants
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"sku":"DEMO-BLACK-M","label":"Black M","price":"99.99"}
+
+### Staff receives stock
+POST {{baseUrl}}/api/inventory/movements
+Authorization: Bearer {{staffToken}}
+Content-Type: application/json
+
+{"variant_id":{{variantId}},"kind":"IN","delta":10,"reason":"Synthetic demo opening stock"}
+
+### Viewer checks current balances
+GET {{baseUrl}}/api/inventory
+Authorization: Bearer {{viewerToken}}
+
+### Read the ledger
+GET {{baseUrl}}/api/inventory/variants/{{variantId}}/movements
+Authorization: Bearer {{viewerToken}}
+
+### Admin reads audit
+GET {{baseUrl}}/api/audit-logs
+Authorization: Bearer {{adminToken}}
+
+### Archive after stock reaches zero
+DELETE {{baseUrl}}/api/products/{{productId}}
+Authorization: Bearer {{adminToken}}

@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ProductCacheService } from '../src/modules/products/product-cache.service.js';
 import { ProductsService } from '../src/modules/products/products.service';
 import { DatabaseService } from '../src/database/database.service';
+import { AuditService } from '../src/modules/audit/audit.service.js';
 
 describe('ProductsService', () => {
   let service: ProductsService;
@@ -11,6 +12,7 @@ describe('ProductsService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProductsService,
+        { provide: AuditService, useValue: {} },
         {
           provide: DatabaseService,
           useValue: { db: {} },

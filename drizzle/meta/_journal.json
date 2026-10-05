@@ -8,6 +8,34 @@
       "when": 1790749589320,
       "tag": "0000_closed_stone_men",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791191440090,
+      "tag": "0001_numerous_moira_mactaggert",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791191828348,
+      "tag": "0002_lowly_silver_surfer",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791192158818,
+      "tag": "0003_chubby_earthquake",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791192423869,
+      "tag": "0004_naive_blink",
+      "breakpoints": true
     }
   ]
 }

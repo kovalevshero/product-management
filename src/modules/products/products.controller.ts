@@ -21,6 +21,7 @@ import { QueryProductDto } from './dto/query-product.dto.js';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard.js';
 import { CurrentUser, AuthenticatedUser } from '../../common/decorators/current-user.decorator.js';
 import { Public } from '../../common/decorators/public.decorator.js';
+import { Roles } from '../../common/decorators/roles.decorator.js';
 
 @ApiTags('Products')
 @Controller('api/products')
@@ -49,6 +50,7 @@ export class ProductsController {
   @ApiBearerAuth('access-token')
   @Throttle({ default: { limit: 1, ttl: 5000 } })
   @Post()
+  @Roles('staff', 'admin')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new product (Authorized, max 1 req/5s)' })
   @ApiResponse({ status: 201, description: 'Product successfully created' })
@@ -62,6 +64,7 @@ export class ProductsController {
   @ApiBearerAuth('access-token')
   @Throttle({ default: { limit: 1, ttl: 5000 } })
   @Put(':id')
+  @Roles('staff', 'admin')
   @ApiOperation({ summary: 'Update an existing product (Authorized, max 1 req/5s)' })
   @ApiParam({ name: 'id', example: 1 })
   @ApiResponse({ status: 200, description: 'Product successfully updated' })
@@ -80,12 +83,13 @@ export class ProductsController {
   @ApiBearerAuth('access-token')
   @Throttle({ default: { limit: 1, ttl: 5000 } })
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a product by ID (Authorized, max 1 req/5s)' })
+  @Roles('admin')
+  @ApiOperation({ summary: 'Archive a product (admin, requires zero stock)' })
   @ApiParam({ name: 'id', example: 1 })
   @ApiResponse({ status: 200, description: 'Product successfully deleted' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Product not found' })
-  async remove(@Param('id', ParseIntPipe) id: number) {
-    return this.productsService.remove(id);
+  async remove(@Param('id', ParseIntPipe) id: number, @CurrentUser() actor: AuthenticatedUser) {
+    return this.productsService.remove(id, actor);
   }
 }

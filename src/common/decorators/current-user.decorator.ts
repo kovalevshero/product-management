@@ -1,8 +1,10 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import type { UserRole } from '../../database/schema/users.js';
 
 export interface AuthenticatedUser {
   id: number;
   username: string;
+  role: UserRole;
   fullName?: string;
 }
 
