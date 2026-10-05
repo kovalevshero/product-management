@@ -41,6 +41,8 @@ On 2026-10-05, `npm test -- --runInBand` passed 9 suites/13 cases; `npm run test
 
 ## Demo and limits
 
+The M2 review found and reproduced a database URL override bypass in the test/seed guard. Protected URLs now reject query parameters, and the connected database name is checked before destructive operations. Review fixes also reject null required fields, whitespace-only catalog labels, non-scalar prices and out-of-range IDs/pages. Swagger logout declares Bearer security. Regression verification passed 10 unit suites/16 cases and all 15 M2 integration suites/32 cases.
+
 Use the HTTP collection alongside Swagger. Demo seed is explicit, accepts only `product_management_demo` or `product_management_test`, refuses production mode, and does not duplicate opening movements on replay. All demo names and credentials are synthetic.
 
 The model has one store, one location and IDR prices. Catalog cache is in-memory for one API instance; inventory is read from PostgreSQL. A user has one active refresh session; logout revokes refresh tokens while existing access tokens remain valid until expiry. Frontend, public hosting and CSV import are separate work.

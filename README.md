@@ -77,6 +77,8 @@ By default HTTP tests use `postgresql://postgres:test@localhost:5433/product_man
 
 The GitHub Actions workflow installs dependencies, builds, migrates PostgreSQL 18, and runs unit/HTTP tests. A workflow file is not evidence of a successful remote run; inspect actual Actions results after an authorized push.
 
+Protected test and demo URLs must have no query parameters or fragments. Guards verify the connected database name before migration, reset or seed. Remote SSL options for those protected operations require a separate supported connection configuration. Numeric resource IDs and pages are limited to positive PostgreSQL integers. Run demo seed on a separate database while catalog writes are stopped.
+
 ## Development roadmap
 
 Planning lives in `docs/superpowers/plans/2026-10-05-inventory-portfolio-roadmap.md`; the design contract lives in `docs/superpowers/specs/2026-10-05-inventory-portfolio-design.md`. The milestones are backend foundations, inventory MVP, and stock reservations. Frontend, public hosting, background CSV import, and multi-store support are separate follow-up milestones.

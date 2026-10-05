@@ -6,17 +6,20 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import { and, eq, sql } from 'drizzle-orm';
 import { users, products, productVariants, stockMovements, auditLogs } from './schema/index.js';
 import { assertSchemaReady } from './migrations.js';
+import { assertAllowedDatabaseUrl, verifyDatabaseTarget } from './protected-database.js';
 
 export async function seedDemo(databaseUrl: string): Promise<void> {
-  const parsed = new URL(databaseUrl);
-  if (process.env.NODE_ENV === 'production' || !['postgres:', 'postgresql:'].includes(parsed.protocol) ||
-    !['/product_management_demo', '/product_management_test'].includes(parsed.pathname)) throw new Error('Demo seed requires an explicitly allowed non-production database');
+  if (process.env.NODE_ENV === 'production') throw new Error('Demo seed is forbidden in production');
+  const name = assertAllowedDatabaseUrl(databaseUrl, name => ['product_management_demo', 'product_management_test'].includes(name));
+  await verifyDatabaseTarget(databaseUrl, name);
   await assertSchemaReady(databaseUrl);
   const client = postgres(databaseUrl, { max: 1, connect_timeout: 3 });
   try {
     const db = drizzle(client);
     await db.transaction(async tx => {
       await tx.execute(sql`SELECT pg_advisory_xact_lock(730106)`);
+      const target = await tx.execute(sql`SELECT current_database() AS name`);
+      if (target[0].name !== name) throw new Error('Unsafe connected demo database');
       const accounts = [];
       for (const role of ['admin', 'staff', 'viewer'] as const) {
         const username = `demo_${role}`;

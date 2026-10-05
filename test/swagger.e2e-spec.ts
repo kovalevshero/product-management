@@ -13,5 +13,6 @@ describe('Swagger compatibility', () => {
     expect(schema.statusCode).toBe(200);
     expect(schema.json().paths).toHaveProperty('/api/products');
     expect(schema.json().components.securitySchemes).toHaveProperty('access-token');
+    expect(schema.json().paths['/api/auth/logout'].post.security).toContainEqual({ 'access-token': [] });
   });
 });

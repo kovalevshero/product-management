@@ -1,8 +1,21 @@
 import { describe, it, expect } from '@jest/globals';
 import { validate } from 'class-validator';
 import { CreateProductDto } from '../src/modules/products/dto/create-product.dto';
+import { UpdateProductDto } from '../src/modules/products/dto/update-product.dto.js';
+import { plainToInstance } from 'class-transformer';
 
 describe('CreateProductDto', () => {
+  it('rejects explicit null updates to required fields', async () => {
+    for (const property of ['title', 'price', 'category', 'images']) {
+      expect((await validate(plainToInstance(UpdateProductDto, { [property]: null }))).map(e => e.property)).toContain(property);
+    }
+  });
+  it('rejects whitespace-only labels and non-scalar prices at the HTTP conversion boundary', async () => {
+    for (const changes of [{ title: ' ' }, { category: ' ' }, { price: true }, { price: [5] }]) {
+      const dto = plainToInstance(CreateProductDto, { title: 'Demo', category: 'Demo', price: 99.99, images: ['https://example.com/demo.jpg'], ...changes });
+      expect((await validate(dto)).length).toBeGreaterThan(0);
+    }
+  });
   it('rejects precision loss and non-HTTP images', async () => {
     const dto = Object.assign(new CreateProductDto(), {
       title: 'Demo product', price: 1.001, category: 'Clothes', images: ['javascript:alert(1)'],

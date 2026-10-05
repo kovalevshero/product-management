@@ -5,12 +5,10 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import { sql } from 'drizzle-orm';
 import type { DatabaseService } from '../../src/database/database.service.js';
 import * as schema from '../../src/database/schema/index.js';
+import { assertAllowedDatabaseUrl } from '../../src/database/protected-database.js';
 
 export function assertTestDatabaseUrl(url: string): void {
-  const parsed = new URL(url);
-  if (!['postgres:', 'postgresql:'].includes(parsed.protocol) || !decodeURIComponent(parsed.pathname).endsWith('_test')) {
-    throw new Error('Tests require a database name ending in _test');
-  }
+  assertAllowedDatabaseUrl(url, name => name.endsWith('_test'));
 }
 
 type Request = { method?: string; url: string; payload?: unknown; headers?: Record<string, string> };
@@ -62,6 +60,8 @@ export async function createTestContext(options: { throttle?: boolean } = {}): P
     },
   }, async reset() {
     assertTestDatabaseUrl(url);
+    const target = await db.execute(sql`SELECT current_database() AS name`);
+    if (target[0].name !== decodeURIComponent(new URL(url).pathname.slice(1))) throw new Error('Unsafe connected test database');
     const tables = await db.execute(sql`SELECT tablename FROM pg_tables WHERE schemaname = 'public'`);
     if (tables.length) {
       const names = tables.map(t => '"' + String(t.tablename).replace(/"/g, '""') + '"').join(', ');

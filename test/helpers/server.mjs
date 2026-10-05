@@ -5,10 +5,12 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { AppModule } from '../../dist/app.module.js';
 import { configureApplication } from '../../dist/bootstrap.js';
 import { runMigrations } from '../../dist/database/migrations.js';
+import { assertAllowedDatabaseUrl, verifyDatabaseTarget } from '../../dist/database/protected-database.js';
 
 let app;
 try {
-  if (!new URL(process.env.DATABASE_URL).pathname.endsWith('_test')) throw new Error('Test database required');
+  const name = assertAllowedDatabaseUrl(process.env.DATABASE_URL, name => name.endsWith('_test'));
+  await verifyDatabaseTarget(process.env.DATABASE_URL, name);
   await runMigrations(process.env.DATABASE_URL);
   let builder = Test.createTestingModule({ imports: [AppModule] });
   if (process.env.TEST_THROTTLE !== 'true') {

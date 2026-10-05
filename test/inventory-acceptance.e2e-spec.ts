@@ -40,6 +40,7 @@ describe('Inventory MVP acceptance and demo seed', () => {
     expect((await ctx.db.execute(sql`SELECT sum(delta)::int AS total FROM stock_movements`))[0].total).toBe(20);
     await expect(run(url.replace('product_management_test', 'product_management'))).rejects.toThrow();
     await expect(run(url, 'production')).rejects.toThrow();
+    await expect(run(`${url}?database=product_management_demo`)).rejects.toThrow();
     expect(await ctx.db.execute(sql`SELECT * FROM stock_movements`)).toHaveLength(2);
   });
 });

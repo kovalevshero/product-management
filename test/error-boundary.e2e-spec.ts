@@ -8,9 +8,10 @@ describe('Input and error boundaries', () => {
   beforeEach(async () => { await ctx.reset(); });
   afterAll(async () => { await ctx?.close(); });
   it('rejects pagination outside its database-safe limits', async () => {
-    for (const query of ['limit=101', 'page=0', 'limit=-1', 'page=1.5']) {
+    for (const query of ['limit=101', 'page=0', 'limit=-1', 'page=1.5', 'page=1e100', 'page=2147483648']) {
       expect((await ctx.api.inject(`/api/products?${query}`)).statusCode).toBe(400);
     }
+    for (const id of ['2147483648', '0', '-1']) expect((await ctx.api.inject(`/api/products/${id}`)).statusCode).toBe(400);
   });
   it('does not expose internal database failures', async () => {
     await ctx.db.execute(sql`CREATE OR REPLACE FUNCTION reject_test_insert() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'internal_sensitive_marker'; END $$`);

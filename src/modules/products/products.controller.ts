@@ -8,7 +8,6 @@ import {
   Param,
   Query,
   UseGuards,
-  ParseIntPipe,
   HttpStatus,
   HttpCode,
 } from '@nestjs/common';
@@ -22,6 +21,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard.js';
 import { CurrentUser, AuthenticatedUser } from '../../common/decorators/current-user.decorator.js';
 import { Public } from '../../common/decorators/public.decorator.js';
 import { Roles } from '../../common/decorators/roles.decorator.js';
+import { DatabaseIdPipe } from '../../common/pipes/database-id.pipe.js';
 
 @ApiTags('Products')
 @Controller('api/products')
@@ -42,7 +42,7 @@ export class ProductsController {
   @ApiParam({ name: 'id', example: 1 })
   @ApiResponse({ status: 200, description: 'Product found' })
   @ApiResponse({ status: 404, description: 'Product not found' })
-  async findOne(@Param('id', ParseIntPipe) id: number) {
+  async findOne(@Param('id', DatabaseIdPipe) id: number) {
     return this.productsService.findOne(id);
   }
 
@@ -72,7 +72,7 @@ export class ProductsController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Product not found' })
   async update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', DatabaseIdPipe) id: number,
     @Body() dto: UpdateProductDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
@@ -89,7 +89,7 @@ export class ProductsController {
   @ApiResponse({ status: 200, description: 'Product successfully deleted' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Product not found' })
-  async remove(@Param('id', ParseIntPipe) id: number, @CurrentUser() actor: AuthenticatedUser) {
+  async remove(@Param('id', DatabaseIdPipe) id: number, @CurrentUser() actor: AuthenticatedUser) {
     return this.productsService.remove(id, actor);
   }
 }

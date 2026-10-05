@@ -1,16 +1,18 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, IsString, IsArray, ArrayMinSize, IsOptional, Min, Max, MaxLength, IsUrl } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform } from 'class-transformer';
+import { numericScalar, trimText } from '../../../common/dto/transforms.js';
 
 export class CreateProductDto {
   @ApiProperty({ example: 'Awesome T-Shirt', description: 'Product title' })
+  @Transform(trimText)
   @IsString()
   @IsNotEmpty({ message: 'title is required' })
   @MaxLength(255)
   title: string;
 
   @ApiProperty({ example: 99.99, description: 'Product price' })
-  @Type(() => Number)
+  @Transform(numericScalar)
   @IsNumber({ maxDecimalPlaces: 2 }, { message: 'price must have at most two decimals' })
   @Min(0.01, { message: 'price must be greater than zero' })
   @Max(99999999.99)
@@ -22,6 +24,7 @@ export class CreateProductDto {
   description?: string;
 
   @ApiProperty({ example: 'Clothes', description: 'Product category' })
+  @Transform(trimText)
   @IsString()
   @IsNotEmpty({ message: 'category is required' })
   @MaxLength(100)
