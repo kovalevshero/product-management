@@ -46,17 +46,17 @@ M1 -> M2 -> M3. Bukti portofolio mulai dikumpulkan sejak M1. M4 versi Swagger/co
 
 ## Checklist pelaksanaan
 
-- [ ] Review asumsi satu toko, satu lokasi, IDR, role, perubahan DELETE menjadi arsip, dan kebijakan logout.
-- [ ] Pilih metode eksekusi sesudah review; native direkomendasikan untuk mulai M1 karena schema, helper test, dan bootstrap saling bergantung.
-- [ ] Catat baseline build/test aktual sebelum memperbaiki kode; jangan menganggap test sudah lulus.
-- [ ] Selesaikan M1 dan rekam hasil command verifikasinya.
-- [ ] Selesaikan M2 dan jalankan skenario penerimaan pada database test serta seed demo.
-- [ ] Siapkan ERD dan dokumentasi API dari implementasi yang benar-benar selesai.
-- [ ] Selesaikan M3 bila ingin menampilkan concurrency dan idempotency sebagai fitur unggulan.
+- [x] Review asumsi satu toko, satu lokasi, IDR, role, perubahan DELETE menjadi arsip, dan kebijakan logout.
+- [x] Pilih metode eksekusi sesudah review; native direkomendasikan untuk mulai M1 karena schema, helper test, dan bootstrap saling bergantung.
+- [x] Catat baseline build/test aktual sebelum memperbaiki kode; jangan menganggap test sudah lulus.
+- [x] Selesaikan M1 dan rekam hasil command verifikasinya.
+- [x] Selesaikan M2 dan jalankan skenario penerimaan pada database test serta seed demo.
+- [x] Siapkan ERD dan dokumentasi API dari implementasi yang benar-benar selesai.
+- [x] Selesaikan M3 bila ingin menampilkan concurrency dan idempotency sebagai fitur unggulan.
 - [ ] Tentukan arah visual dan stack frontend sebelum membuat admin UI; Swagger/collection cukup sebagai demo backend awal.
 - [ ] Pilih hosting, batas biaya, pengelolaan secret, dan reset data demo sebelum deployment publik.
-- [ ] Tulis studi kasus: masalah, model data, transaksi, hasil test, batasan, dan keputusan yang ditunda.
-- [ ] Review diff dan hasil verifikasi sebelum commit atau PR; jangan push otomatis.
+- [x] Tulis studi kasus: masalah, model data, transaksi, hasil test, batasan, dan keputusan yang ditunda.
+- [x] Review diff dan hasil verifikasi sebelum commit atau PR; jangan push otomatis.
 
 ## Skenario demo yang akan dibuat
 
@@ -70,6 +70,8 @@ Data berikut merupakan skenario sintetis, bukan hasil yang sudah diukur.
 
 ## Catatan branch dan artefak
 
-Planning dibuat pada `experiment`, tanpa perubahan kode aplikasi. Hanya lima dokumen baru tanggal 2026-10-05 dikecualikan dari ignore `docs`; dokumen 2026-09-30 tetap ignored. `AGENTS.md` dan PDF yang sudah untracked tidak ikut distage. Branch lokal belum memiliki commit baru; file planning baru menjadi bagian riwayat branch setelah commit yang terpisah.
+Planning awal dibuat pada `experiment`, tanpa perubahan kode aplikasi. Implementasi kemudian diotorisasi. M1-M3 sudah dicommit lokal dan direview; tidak ada push atau merge. Lima dokumen desain/planning dan dua artefak `docs/portfolio` dilacak secara terarah; dokumen 2026-09-30 tetap ignored. `AGENTS.md` dan PDF yang sudah untracked tidak ikut distage.
+
+Verifikasi akhir 2026-10-06: build, 16 unit test, 44 integration test, fresh/upgrade migration, demo HTTP database terpisah, Compose test dan HTTP container lulus. Bukti dan batasan ada di `docs/portfolio/inventory-case-study.md`. M4 frontend/hosting dan M5 belum termasuk hasil ini.
 
 Tidak ada estimasi kalender yang dijanjikan. Setelah baseline M1 berjalan, ukur waktu task pertama untuk menyusun jadwal sesuai waktu luang Anda.

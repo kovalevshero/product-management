@@ -99,6 +99,21 @@ On 2026-10-06, the resumed M3 build passed. Unit verification passed 10 suites/1
 
 The separate demo database was upgraded to M3 without a reset. Real HTTP requests produced `[201,409]` for the last-unit reservation race, 201 for creation replay, `[200,200]` for two simultaneous confirms, one confirmation OUT, two reservation audit entries and final counters `{on_hand:0,reserved:0,available:0}`. A separate cancellation allowed another actor to reserve the released unit. The synthetic race SKU was left empty after explicit cleanup movements; the original seeded SKU balances were retained.
 
+Docker verification also passed on 2026-10-06: `docker compose -p inventory_test -f docker-compose.test.yml up -d --build --wait` built both images, the migrator exited 0, and API/database health checks passed. HTTP checks against port 3001 verified health, Swagger assets and OpenAPI, viewer mutation 403, invalid key 400, reservation race `[201,409]`, double confirm `[200,200]`, current-state replay 201, exactly one OUT and two reservation audit entries. Original development containers and their volume were not changed. The clean builder dependency install took about eleven minutes; no throughput result is implied.
+
+The production audit returned zero vulnerabilities. The full builder install reported 38 findings in the larger development dependency set; upgrades to that tooling remain separate work under the milestone's major-version constraint. The completed M3 review found no Critical, Important or Minor code changes to request.
+
+## M3 execution decisions
+
+- Terminal replay may lock an archived product so a repeated confirm/cancel keeps returning its existing terminal state. Pending changes still require an active product. This adds a parent-row check and preserves replay after archive.
+- Creation and terminal transitions were committed together after their individual RED/GREEN evidence and combined regression gate. The cost is a larger milestone diff.
+- Local integration ran through the direct serial Jest command after the Windows Temp/argument-forwarding problems. Other environments may use the npm wrapper; the local command difference is documented.
+- Staff/admin can manage all reservations in this one store. Automatic expiry, payments, multi-SKU checkout and owner-only management are outside the contract; staff must resolve pending reservations manually.
+- Privileged direct SQL maintenance is outside the HTTP invariant guarantee. Such maintenance can bypass service rules; there is no ledger-edit API.
+- Multi-instance cache coherence, high-load capacity, public hosting and remote CI success remain unclaimed and need separate validation. M1/M2 corrections already had review; the M3 review inspected their integration points.
+
+No deferred minor code findings were recorded. Work remains on `experiment`; no push or merge was performed.
+
 - Role and first-admin tests: five cases passed, including simultaneous demotions and an existing token observing its changed role.
 - Audit tests: two cases passed, including forced database insertion failure and catalog rollback.
 - Variant tests: three cases passed, including simultaneous duplicate SKUs and direct database constraint checks.

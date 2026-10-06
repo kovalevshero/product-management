@@ -1,6 +1,6 @@
 # Desain katalog dan inventori untuk portofolio
 
-Tanggal: 2026-10-05. Status: usulan desain untuk direview; belum diimplementasikan.
+Tanggal desain: 2026-10-05. Status: M1-M3 diimplementasikan dan diverifikasi lokal pada 2026-10-06; hasil ada di `docs/portfolio/inventory-case-study.md`. CI remote dan deployment publik belum dijalankan.
 
 ## Tujuan dan asumsi
 
@@ -8,7 +8,7 @@ Mengembangkan backend technical test menjadi aplikasi satu toko yang mengelola k
 
 Asumsi kerja: target utama posisi backend; satu toko dan satu lokasi penyimpanan; satu mata uang `STORE_CURRENCY=IDR`; harga memiliki dua digit desimal. Nilai ini adalah keputusan usulan, bukan kebutuhan yang sudah dikonfirmasi. Frontend admin disiapkan sesudah API MVP stabil dan arah visual disepakati.
 
-Permintaan sesi ini hanya planning dan pembuatan branch. Tidak mengimplementasikan fitur, menginstall dependency, menjalankan migrasi, commit, atau push. Branch kerja: `experiment`; tidak push ke `main`.
+Permintaan awal ketika desain dibuat hanya planning dan pembuatan branch. Pengguna kemudian mengotorisasi implementasi M1-M3 dan pengecualian upgrade major Swagger UI. Branch kerja tetap `experiment`; commit lokal dibuat tanpa push atau merge ke `main`.
 
 ## Baseline yang diperiksa
 
