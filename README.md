@@ -64,6 +64,8 @@ Public signup creates a viewer and rejects role injection. To create the first a
 
 For a separate demo database, set `DATABASE_URL` to `product_management_demo`, migrate, then run `npm run db:seed-demo` in development mode. Synthetic accounts `demo_admin`, `demo_staff` and `demo_viewer` use `demo-secret123`; the database contains one product, two SKU variants and ten opening units each. Seed refuses production mode and other database names. Replaying seed keeps existing credentials and opening movements.
 
+Use `node dist/database/seed-demo.js --accounts-only` when a test harness creates its own uniquely named catalog fixtures. This mode retains the same target/schema/production guards and seeds only the three synthetic accounts; it does not touch products, SKU balances, movements or audit history.
+
 Variant price is a positive decimal string, such as `"99.99"`; SKU is immutable. Inventory movements accept nonzero integer delta up to 1,000,000 absolute, a kind and a reason. `IN` is positive, `OUT` negative, `ADJUSTMENT` signed. `available = on_hand - reserved`; insufficient stock returns 409. Catalog DTOs cannot update stock. All successful domain mutations and their audit records share one transaction.
 
 The [case study](docs/portfolio/inventory-case-study.md) explains the schema and concurrency decisions; the [HTTP collection](docs/portfolio/inventory-api.http) provides demo requests.
@@ -90,6 +92,6 @@ Reservations contain one SKU and quantity 1..1,000,000. Creating PENDING increas
 
 Creation keys are UUIDs scoped to actor and operation. Retry with the same key and payload returns the same resource's current state with 201, including after confirm/cancel. Different payload with the same key returns 409. Only successful requests are retained. Pending reservations do not expire automatically; staff must confirm or cancel them. There is no payment or multi-SKU checkout.
 
-Planning lives in `docs/superpowers/plans/2026-10-05-inventory-portfolio-roadmap.md`; the design contract lives in `docs/superpowers/specs/2026-10-05-inventory-portfolio-design.md`. The milestones are backend foundations, inventory MVP, and stock reservations. Frontend, public hosting, background CSV import, and multi-store support are separate follow-up milestones.
+Planning lives in `docs/superpowers/plans/2026-10-05-inventory-portfolio-roadmap.md`; the design contract lives in `docs/superpowers/specs/2026-10-05-inventory-portfolio-design.md`. The backend milestones cover foundations, inventory and reservations. The frontend in `../product-management-ui` adds role-aware catalog, inventory, reservations, audit and member management; see its README and `docs/inventory-admin-verification.md` for setup and evidence. Public hosting, background CSV import and multi-store support remain follow-up scope.
 
 Work is on branch `experiment`. No automated push or merge to `main` is part of this workflow.

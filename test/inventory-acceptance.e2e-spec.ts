@@ -3,12 +3,26 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { sql } from 'drizzle-orm';
 import { createTestContext, type TestContext } from './helpers/test-context.js';
-import { seedActor, bearer, demoProduct } from './helpers/domain-fixtures.js';
+import { seedActor, seedProduct, seedVariant, bearer, demoProduct } from './helpers/domain-fixtures.js';
 describe('Inventory MVP acceptance and demo seed', () => {
   let ctx: TestContext;
   beforeAll(async () => { ctx = await createTestContext(); });
   beforeEach(async () => { await ctx.reset(); });
   afterAll(async () => { await ctx?.close(); });
+  it('seeds only accounts without touching an existing catalog or colliding demo SKU', async () => {
+    const actor = await seedActor(ctx, 'admin');
+    const product = await seedProduct(ctx, actor.id);
+    const variant = await seedVariant(ctx, product.id);
+    const before = await ctx.db.execute(sql`SELECT * FROM product_variants WHERE id = ${variant.id}`);
+    const url = process.env.TEST_DATABASE_URL || 'postgresql://postgres:test@localhost:5433/product_management_test';
+    await promisify(execFile)(process.execPath, ['dist/database/seed-demo.js', '--accounts-only'], { env: { ...process.env, NODE_ENV: 'test', DATABASE_URL: url } });
+    expect(await ctx.db.execute(sql`SELECT * FROM products`)).toHaveLength(1);
+    expect(await ctx.db.execute(sql`SELECT * FROM product_variants`)).toEqual(before);
+    expect(await ctx.db.execute(sql`SELECT * FROM stock_movements`)).toHaveLength(0);
+    expect(await ctx.db.execute(sql`SELECT username, role FROM users WHERE username IN ('demo_admin', 'demo_staff', 'demo_viewer') ORDER BY username`)).toEqual([
+      { username: 'demo_admin', role: 'admin' }, { username: 'demo_staff', role: 'staff' }, { username: 'demo_viewer', role: 'viewer' },
+    ]);
+  });
   it('runs the admin/staff/viewer catalog-to-stock-to-archive flow', async () => {
     const admin = await seedActor(ctx, 'admin'), staff = await seedActor(ctx, 'staff'), viewer = await seedActor(ctx, 'viewer');
     const p = (await ctx.api.inject({ method: 'POST', url: '/api/products', headers: bearer(admin), payload: demoProduct })).json();

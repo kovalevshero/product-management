@@ -8,7 +8,7 @@ import { users, products, productVariants, stockMovements, auditLogs } from './s
 import { assertSchemaReady } from './migrations.js';
 import { assertAllowedDatabaseUrl, verifyDatabaseTarget } from './protected-database.js';
 
-export async function seedDemo(databaseUrl: string): Promise<void> {
+export async function seedDemo(databaseUrl: string, options: { accountsOnly?: boolean } = {}): Promise<void> {
   if (process.env.NODE_ENV === 'production') throw new Error('Demo seed is forbidden in production');
   const name = assertAllowedDatabaseUrl(databaseUrl, name => ['product_management_demo', 'product_management_test'].includes(name));
   await verifyDatabaseTarget(databaseUrl, name);
@@ -28,6 +28,7 @@ export async function seedDemo(databaseUrl: string): Promise<void> {
         if (actor.role !== role) throw new Error('Demo account role conflicts with existing data');
         accounts.push(actor);
       }
+      if (options.accountsOnly) return;
       const admin = accounts[0], staff = accounts[1];
       let [product] = await tx.select().from(products).where(and(eq(products.title, 'Synthetic Demo Shirt'), eq(products.createdById, String(admin.id))));
       if (!product) {
@@ -54,7 +55,7 @@ export async function seedDemo(databaseUrl: string): Promise<void> {
   } finally { await client.end(); }
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  seedDemo(process.env.DATABASE_URL!)
+  seedDemo(process.env.DATABASE_URL!, { accountsOnly: process.argv.includes('--accounts-only') })
     .then(() => console.log('Synthetic demo data ready'))
     .catch(() => { console.error('Demo seed failed; verify allowed database, schema and demo data conflicts'); process.exitCode = 1; });
 }
