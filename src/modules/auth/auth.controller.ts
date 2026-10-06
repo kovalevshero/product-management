@@ -1,5 +1,6 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
+import { AuthProfileDto } from './dto/auth-profile.dto.js';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service.js';
 import { RegisterDto } from './dto/register.dto.js';
@@ -13,6 +14,14 @@ import { CurrentUser, AuthenticatedUser } from '../../common/decorators/current-
 @Controller('api/auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Get('me')
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Current identity and role read from the database' })
+  @ApiOkResponse({ type: AuthProfileDto })
+  me(@CurrentUser() user: AuthenticatedUser): AuthProfileDto {
+    return { id: user.id, username: user.username, full_name: user.fullName || user.username, role: user.role };
+  }
 
   @Post('logout')
   @ApiBearerAuth('access-token')

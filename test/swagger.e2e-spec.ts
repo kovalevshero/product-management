@@ -14,5 +14,7 @@ describe('Swagger compatibility', () => {
     expect(schema.json().paths).toHaveProperty('/api/products');
     expect(schema.json().components.securitySchemes).toHaveProperty('access-token');
     expect(schema.json().paths['/api/auth/logout'].post.security).toContainEqual({ 'access-token': [] });
+    expect(schema.json().paths['/api/auth/me'].get.security).toContainEqual({ 'access-token': [] });
+    expect(schema.json().paths['/api/users'].get.security).toContainEqual({ 'access-token': [] });
   });
 });

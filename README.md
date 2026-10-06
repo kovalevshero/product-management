@@ -37,6 +37,7 @@ Use `npm run start:dev` after the initial migration. Schema changes require `npm
 | POST | `/api/auth/login` | Public, 3 requests/minute |
 | POST | `/api/auth/refresh` | Refresh token |
 | POST | `/api/auth/logout` | Bearer token, returns 204 |
+| GET | `/api/auth/me` | Current safe profile and database role |
 | GET | `/api/products`, `/api/products/:id` | Public catalog |
 | POST/PUT | `/api/products`, `/api/products/:id` | Staff/admin, 1 mutation/5 seconds |
 | DELETE | `/api/products/:id` | Admin archive, requires zero stock |
@@ -45,6 +46,7 @@ Use `npm run start:dev` after the initial migration. Schema changes require `npm
 | GET | `/api/inventory`, `/api/inventory/variants/:id/movements` | Authenticated |
 | POST | `/api/inventory/movements` | Staff/admin |
 | PATCH | `/api/users/:id/role` | Admin, final admin protected |
+| GET | `/api/users` | Admin, safe paginated member profiles |
 | GET | `/api/audit-logs` | Admin |
 | GET | `/api/reservations` | Authenticated, optional status filter |
 | POST | `/api/reservations` | Staff/admin, required UUID Idempotency-Key |

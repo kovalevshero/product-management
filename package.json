@@ -74,6 +74,7 @@
 			"ts"
 		],
 		"rootDir": ".",
+		"testPathIgnorePatterns": ["/node_modules/", "<rootDir>/.superpowers/"],
 		"testRegex": ".*\\.spec\\.ts$",
 		"extensionsToTreatAsEsm": [
 			".ts"
