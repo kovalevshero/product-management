@@ -4,6 +4,8 @@
 @viewerToken = replace-with-demo-viewer-access-token
 @productId = 1
 @variantId = 1
+@reservationId = replace-with-created-reservation-uuid
+@idempotencyKey = 8a3c2e15-f496-4ab7-990c-b43963781560
 
 ### Login: synthetic account, demo database only
 POST {{baseUrl}}/api/auth/login
@@ -50,3 +52,23 @@ Authorization: Bearer {{adminToken}}
 ### Archive after stock reaches zero
 DELETE {{baseUrl}}/api/products/{{productId}}
 Authorization: Bearer {{adminToken}}
+
+### Reserve one unit; replay this exact key/body returns the same current resource
+POST {{baseUrl}}/api/reservations
+Authorization: Bearer {{staffToken}}
+Idempotency-Key: {{idempotencyKey}}
+Content-Type: application/json
+
+{"variant_id":{{variantId}},"quantity":1}
+
+### Confirm; repeats produce no extra OUT
+POST {{baseUrl}}/api/reservations/{{reservationId}}/confirm
+Authorization: Bearer {{staffToken}}
+
+### Cancel a PENDING reservation; opposite terminal transitions return 409
+POST {{baseUrl}}/api/reservations/{{reservationId}}/cancel
+Authorization: Bearer {{staffToken}}
+
+### List reservations
+GET {{baseUrl}}/api/reservations?status=PENDING
+Authorization: Bearer {{viewerToken}}

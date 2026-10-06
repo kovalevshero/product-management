@@ -5,6 +5,6 @@ export function inventoryBalance(v: LockedVariant): InventoryBalance {
   return { variant_id: v.id, sku: v.sku, on_hand: v.onHand, reserved: v.reserved, available: v.onHand - v.reserved };
 }
 export function movementView(m: typeof stockMovements.$inferSelect) {
-  return { id: m.id, variant_id: m.variantId, kind: m.kind, delta: m.delta, reason: m.reason, actor_id: m.actorId, created_at: m.createdAt };
+  return { id: m.id, variant_id: m.variantId, kind: m.kind, delta: m.delta, reason: m.reason, actor_id: m.actorId, reservation_id: m.reservationId, created_at: m.createdAt };
 }
 export type MovementView = ReturnType<typeof movementView>;

@@ -1,0 +1,41 @@
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
+import { randomUUID } from 'node:crypto';
+import { sql } from 'drizzle-orm';
+import { createTestContext, type TestContext } from './helpers/test-context.js';
+import { seedActor, bearer } from './helpers/domain-fixtures.js';
+import { reservationStock } from './helpers/reservation-fixtures.js';
+describe('Reservation concurrency acceptance', () => {
+  let ctx: TestContext;
+  beforeAll(async () => { ctx = await createTestContext(); });
+  beforeEach(async () => { await ctx.reset(); });
+  afterAll(async () => { await ctx?.close(); });
+  const reserve = (actor: { token: string }, variantId: number, key = randomUUID()) => ctx.api.inject({ method: 'POST', url: '/api/reservations', headers: { ...bearer(actor), 'idempotency-key': key }, payload: { variant_id: variantId, quantity: 1 } });
+  const transition = (actor: { token: string }, id: string, action: string) => ctx.api.inject({ method: 'POST', url: `/api/reservations/${id}/${action}`, headers: bearer(actor) });
+  it('lets only one actor reserve the last unit and commits a single OUT after retries', async () => {
+    const f = await reservationStock(ctx), staff = await seedActor(ctx, 'staff');
+    const actors = [f.actor, staff], keys = [randomUUID(), randomUUID()];
+    const results = await Promise.all(actors.map((actor, i) => reserve(actor, f.variant.id, keys[i])));
+    expect(results.map(r => r.statusCode).sort()).toEqual([201, 409]);
+    const index = results.findIndex(r => r.statusCode === 201), id = results[index].json().id;
+    expect((await reserve(actors[index], f.variant.id, keys[index])).json().id).toBe(id);
+    expect((await transition(staff, id, 'confirm')).statusCode).toBe(200);
+    expect((await transition(staff, id, 'confirm')).statusCode).toBe(200);
+    const balance = (await ctx.api.inject({ url: '/api/inventory', headers: bearer(staff) })).json().data[0];
+    expect(balance).toMatchObject({ on_hand: 0, reserved: 0, available: 0 });
+    const outs = await ctx.db.execute(sql`SELECT * FROM stock_movements WHERE kind = 'OUT'`);
+    expect(outs).toHaveLength(1); expect(outs[0].reservation_id).toBe(id);
+    expect(await ctx.db.execute(sql`SELECT * FROM audit_logs WHERE entity_type = 'reservation'`)).toHaveLength(2);
+    const list = await ctx.api.inject({ url: '/api/reservations?status=CONFIRMED', headers: bearer(staff) });
+    expect(list.json().meta.total).toBe(1); expect(list.json().data[0].id).toBe(id);
+  });
+  it('makes cancelled stock available to another actor', async () => {
+    const f = await reservationStock(ctx), staff = await seedActor(ctx, 'staff');
+    const first = await reserve(f.actor, f.variant.id);
+    expect(first.statusCode).toBe(201);
+    expect((await transition(staff, first.json().id, 'cancel')).statusCode).toBe(200);
+    const second = await reserve(staff, f.variant.id);
+    expect(second.statusCode).toBe(201); expect(second.json().id).not.toBe(first.json().id);
+    expect((await ctx.db.execute(sql`SELECT on_hand, reserved FROM product_variants`))[0]).toEqual({ on_hand: 1, reserved: 1 });
+    expect(await ctx.db.execute(sql`SELECT * FROM stock_movements WHERE kind = 'OUT'`)).toHaveLength(0);
+  });
+});

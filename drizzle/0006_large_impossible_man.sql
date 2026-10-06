@@ -1,0 +1,4 @@
+ALTER TABLE "stock_movements" ADD COLUMN "reservation_id" uuid;--> statement-breakpoint
+ALTER TABLE "stock_movements" ADD CONSTRAINT "stock_movements_reservation_id_reservations_id_fk" FOREIGN KEY ("reservation_id") REFERENCES "public"."reservations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+CREATE UNIQUE INDEX "movement_reservation_out_unique" ON "stock_movements" USING btree ("reservation_id") WHERE "stock_movements"."reservation_id" IS NOT NULL AND "stock_movements"."kind" = 'OUT';--> statement-breakpoint
+ALTER TABLE "stock_movements" ADD CONSTRAINT "movement_reservation_kind_check" CHECK ("stock_movements"."reservation_id" IS NULL OR "stock_movements"."kind" = 'OUT');

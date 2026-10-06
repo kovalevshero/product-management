@@ -13,6 +13,7 @@ import { RolesGuard } from './common/guards/roles.guard.js';
 import { UsersModule } from './modules/users/users.module.js';
 import { AuditModule } from './modules/audit/audit.module.js';
 import { InventoryModule } from './modules/inventory/inventory.module.js';
+import { ReservationsModule } from './modules/reservations/reservations.module.js';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { InventoryModule } from './modules/inventory/inventory.module.js';
     UsersModule,
     AuditModule,
     InventoryModule,
+    ReservationsModule,
   ],
   providers: [
     {

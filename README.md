@@ -46,6 +46,9 @@ Use `npm run start:dev` after the initial migration. Schema changes require `npm
 | POST | `/api/inventory/movements` | Staff/admin |
 | PATCH | `/api/users/:id/role` | Admin, final admin protected |
 | GET | `/api/audit-logs` | Admin |
+| GET | `/api/reservations` | Authenticated, optional status filter |
+| POST | `/api/reservations` | Staff/admin, required UUID Idempotency-Key |
+| POST | `/api/reservations/:id/confirm`, `/api/reservations/:id/cancel` | Staff/admin, empty body |
 | GET | `/api/health/live` | Public liveness |
 | GET | `/api/health/ready` | Public database readiness |
 
@@ -80,6 +83,10 @@ The GitHub Actions workflow installs dependencies, builds, migrates PostgreSQL 1
 Protected test and demo URLs must have no query parameters or fragments. Guards verify the connected database name before migration, reset or seed. Remote SSL options for those protected operations require a separate supported connection configuration. Numeric resource IDs and pages are limited to positive PostgreSQL integers. Run demo seed on a separate database while catalog writes are stopped.
 
 ## Development roadmap
+
+Reservations contain one SKU and quantity 1..1,000,000. Creating PENDING increases `reserved`; confirm decreases `on_hand` and `reserved` and appends exactly one OUT. Cancel decreases `reserved` only. Repeated matching terminal transitions return 200 without extra effects, including after the product is archived; opposite terminal transitions return 409.
+
+Creation keys are UUIDs scoped to actor and operation. Retry with the same key and payload returns the same resource's current state with 201, including after confirm/cancel. Different payload with the same key returns 409. Only successful requests are retained. Pending reservations do not expire automatically; staff must confirm or cancel them. There is no payment or multi-SKU checkout.
 
 Planning lives in `docs/superpowers/plans/2026-10-05-inventory-portfolio-roadmap.md`; the design contract lives in `docs/superpowers/specs/2026-10-05-inventory-portfolio-design.md`. The milestones are backend foundations, inventory MVP, and stock reservations. Frontend, public hosting, background CSV import, and multi-store support are separate follow-up milestones.
 
